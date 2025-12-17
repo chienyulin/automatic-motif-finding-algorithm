@@ -1,0 +1,7 @@
+Selected LASSO model lambda: 0.1183506729519469 
+Final motifs: 
+.a.....uu.
+g.uu.
+u..uu.
+uu...u
+.uuc

@@ -76,11 +76,10 @@ def my_confusion_matrix(y_true, y_pred):
     
     return (tp, tn, fp, fn, sens, spec, FPR, FNR, accuracy, f1score)
 
-def my_LASSO(X_train_pos_motif,y_train,df_seq_test,y_test,alphas, model):
+def my_LASSO(X_train_pos_motif,y_train,alphas, model):
     
     #import numpy as np
     import pandas as pd
-    import re
     import sub_funcs as my_subfunc
 
     from sklearn.linear_model import LassoCV, LogisticRegressionCV
@@ -89,13 +88,7 @@ def my_LASSO(X_train_pos_motif,y_train,df_seq_test,y_test,alphas, model):
     lass_motif_list = []
     n_nonzero_list = []
     nonzero_X_train_pos_list = []
-    occurrence_list = []
     train_performance_metrics_list = []
-    test_performance_metrics_list = []
-    y_test_pred_list = []
-    
-    # seqs for prediction
-    test_seq = df_seq_test['sequence']
 
     for i, a in enumerate(alphas):  # for each alpha
         print("Iteration: ", i)
@@ -140,50 +133,26 @@ def my_LASSO(X_train_pos_motif,y_train,df_seq_test,y_test,alphas, model):
         y_train_pred = [1 if item == True else 0 for item in nonzero_X_train_pos.any(axis=1)]
         train_performance_metrics = my_subfunc.my_confusion_matrix(y_train, y_train_pred)
         
-        # sensitivity and specificity on test seqs
-        occurrence_list = []
-        for selected_motif_ind in selected_motif:
-            exist_test_group = [1 if re.search(selected_motif_ind, string) else 0 for string in test_seq]
-            occurrence_list.append(exist_test_group)
-            
-        # prepare occurrence_list to dataframe for csv file
-        df_motif_test = pd.DataFrame(occurrence_list,columns=[df_seq_test.iloc[:,0]],index=[selected_motif])
-        df_motif_test = df_motif_test.transpose()
-        pred_test_bool = df_motif_test.any(axis=1)
-        y_test_pred = pd.DataFrame([1 if item == True else 0 for item in pred_test_bool],columns=['pred_group'],index=[df_seq_test.iloc[:,0]])
-
-        test_performance_metrics = my_subfunc.my_confusion_matrix(y_test, y_test_pred)
-        
         coefs.append(model.coef_)
         n_nonzero_list.append(n_nonzero)
         lass_motif_list.append(selected_motif)
         nonzero_X_train_pos_list.append(nonzero_X_train_pos.transpose())
-        y_test_pred_list.append(df_motif_test.transpose())
         train_performance_metrics_list.append(train_performance_metrics)
-        test_performance_metrics_list.append(test_performance_metrics)
         
     df_n_nonzero_list = pd.DataFrame(n_nonzero_list, columns=['N_nonzeros'])
 
     df_motif_alpha_list_train = pd.concat(nonzero_X_train_pos_list, keys=range(len(nonzero_X_train_pos_list)))
     df_motif_alpha_list_train = df_motif_alpha_list_train.reset_index()
-    df_motif_alpha_list_train = df_motif_alpha_list_train.rename(columns={'level_0': 'ListIndex'})
+    df_motif_alpha_list_train = df_motif_alpha_list_train.rename(columns={'level_0': 'Model'})
     df_motif_alpha_list_train = df_motif_alpha_list_train.rename(columns={'level_1': 'Motifs'})
-    
-    df_motif_alpha_list_test = pd.concat(y_test_pred_list, keys=range(len(nonzero_X_train_pos_list)))
-    df_motif_alpha_list_test = df_motif_alpha_list_test.reset_index()
-    df_motif_alpha_list_test = df_motif_alpha_list_test.rename(columns={'level_0': 'ListIndex'})
-    df_motif_alpha_list_test = df_motif_alpha_list_test.rename(columns={'level_1': 'Motifs'})
-    
-    df_motif_alpha_list_train_test = pd.merge(df_motif_alpha_list_train, df_motif_alpha_list_test, left_index=True, right_index=True)
+
 
     df_perfmetric_train = pd.DataFrame(train_performance_metrics_list, columns=['train_tp', 'train_tn', 'train_fp', 'train_fn', 'train_sens', 'train_spec', 'train_fpr', 'train_fnr', 'train_acc', 'train_f1'])
-    df_perfmetric_test = pd.DataFrame(test_performance_metrics_list, columns=['test_tp', 'test_tn', 'test_fp', 'test_fn', 'test_sens', 'test_spec', 'test_fpr', 'test_fnr', 'test_acc', 'test_f1'])
-    df_perfmetric_train_test = pd.merge(df_perfmetric_train, df_perfmetric_test, left_index=True, right_index=True)
-    df_perfmetric_train_test_nonzero = pd.merge(df_n_nonzero_list, df_perfmetric_train_test, left_index=True, right_index=True)
+    df_perfmetric_train_nonzero = pd.merge(df_n_nonzero_list, df_perfmetric_train, left_index=True, right_index=True)
     
-    df_final = pd.merge(df_perfmetric_train_test_nonzero, df_motif_alpha_list_train_test, left_index=True, right_on='ListIndex')
+    df_final = pd.merge(df_perfmetric_train_nonzero, df_motif_alpha_list_train, left_index=True, right_on='Model')
     
     df_coefs = pd.DataFrame(coefs)
     
-    return df_final, df_coefs, df_perfmetric_train_test_nonzero, df_motif_alpha_list_train_test
+    return df_final, df_coefs, df_perfmetric_train_nonzero, df_motif_alpha_list_train
 
