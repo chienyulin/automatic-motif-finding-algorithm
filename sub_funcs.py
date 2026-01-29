@@ -38,12 +38,10 @@ def df_unique_rows(df_input):
         original_size = len(string)
         modified_string = remove_dots(string)
         modified_size = len(modified_string)
-        #sizes.append((original_size, modified_string, modified_size))
         sizes.append((string, original_size, modified_string, modified_size))
 
     df_removedots = pd.DataFrame(sizes, columns=['miRNA','Original Size','Modified String', 'Modified Size'], index = [kmer_pool])
     df_removedots = df_removedots.rename_axis('motifs', axis='index')
-    #df_removedots = pd.DataFrame(sizes, columns=['Original String', 'Original Size', 'Modified String', 'Modified Size'], index = [kmer_pool])
 
     # 2nd step: combine df_removedots and df_input
     df_combined = pd.merge(df_removedots, df_input, on='miRNA')
@@ -93,12 +91,6 @@ def my_LASSO(X_train_pos_motif,y_train,alphas, model):
     for i, a in enumerate(alphas):  # for each alpha
         print("Iteration: ", i)
         
-        # current lasso model with alphas = a
-        #model.set_params(alphas=[a])
-        
-        # fit the model
-        #model.fit(X_train_pos_motif, y_train)
-        
         # calculate nonzero coefficients indices
         if isinstance(model, LogisticRegressionCV):
             
@@ -127,7 +119,6 @@ def my_LASSO(X_train_pos_motif,y_train,alphas, model):
         
         # motifs with nonzero coefficients
         selected_motif = nonzero_X_train_pos.columns
-        #selected_motif = list(compress(motif_list_pos_only, nonzero_coef_indices))
         
         # 
         y_train_pred = [1 if item == True else 0 for item in nonzero_X_train_pos.any(axis=1)]

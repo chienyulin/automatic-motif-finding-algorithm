@@ -28,18 +28,12 @@ df_motif = df_motif.rename(columns={'Unnamed: 0': 'miRNA'})
 motif_list = df_motif['miRNA']
 df_motif.index = motif_list
 df_motif = df_motif.rename_axis('motifs', axis='index')
-#df_motif.drop(columns=['miRNA'],inplace=True)
 
 # clean up the df_motif
 df_motif_clean = my_subfunc.df_unique_rows(df_motif)
 motif_list_clean = df_motif_clean.index
 
-# # clean up the df_motif
-# df_motif_clean = df_motif.drop(columns='miRNA')
-# motif_list_clean = df_motif_clean.index
-
 # prepare X, y from train for fitting
-#X_train = df_motif.iloc[:,1:].transpose()
 X_train = df_motif_clean.transpose()
 # standardization of the train data before using lasso
 scaler = MinMaxScaler().fit(X_train) 
@@ -61,12 +55,6 @@ ind_neg_motif_only = X_train_neg.any(axis='rows')   # indices of motifs only in 
 
 X_train_pos_motif = X_train.loc[:, ind_pos_motif_only]  # X_train_motifs only in positive inflammatory
 X_train_neg_motif = X_train.loc[:, ind_neg_motif_only]  # X_train_motifs only in negative inflammatory
-
-#motif_list_pos_only = motif_list[ind_pos_motif_only]    # list of motifs only in positive inflammatory
-#motif_list_neg_only = motif_list[ind_neg_motif_only]    # list of motifs only in negative inflammatory
-
-# # seqs for prediction
-# test_seq = df_seq_test['sequence']
 
 # plot fig size
 fig_size_len = 8

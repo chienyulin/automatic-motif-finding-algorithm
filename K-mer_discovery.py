@@ -32,21 +32,16 @@ ind_neg = list(df.iloc[:,2]==0)
 df_pos = df.loc[ind_pos,:]
 df_neg = df.loc[ind_neg,:]
 
-# display DataFrame
-#print(df)
-
 # get sequence data from the original dataframe, positive group and negative group
 seqs = list(df.iloc[:,1])
 seq_pos = list(df_pos.iloc[:,1])
 seq_neg = list(df_neg.iloc[:,1])
 
 # define a prefix to indicate the beginning of a new sequence when merging all sequence to one long string
-prefix = "!"# or suffix
+prefix = "!"
 
 # add prefix to each sequence in the list
 prefix_seq = [prefix + sub for sub in seqs]
-# add suffix to each sequence in the list
-#suffix_seq = [sub + prefix for sub in seqs]
 
 # merge all sequences in the list to ONE sequence 
 # motif with prefix sign will be removed after the count_kmers function
@@ -89,8 +84,6 @@ def optimize_kmer(K):
                 this_str[index-1] = '.'
             output_set.add(''.join(this_str))
     
-    # Sort the output
-    #output = sorted(output_set)
     t1 = time.time()
     print(K,'mer wildcards Time:', t1-t0, '; len(w/wildc, w/o wildC)', len(res_unique), len(output_set))
 
@@ -105,7 +98,6 @@ def is_pattern_exist(pattern, group):
 cutoff_count_pos = len(seq_pos)*tol
 cutoff_count_neg = len(seq_neg)*tol
 
-#k_array = [k for k in range1(kmin, kmax)]
 k_array = list(range(kmin, kmax+1))
 
 kmer_pool = []
@@ -191,7 +183,6 @@ else:
         print('Total executive time:', Tend-Tstart)
     
         # prepare occurrence_list to dataframe
-        #df_kmer = pd.DataFrame(occurrence_list,columns=[df.iloc[:,0]],index=[kmer_pool])
         df_kmer = pd.DataFrame(occurrence_list,columns=list(df['miRNA']),index=[kmer_pool])
         df_count = pd.DataFrame(count_list,columns=list(df['miRNA']),index=[kmer_pool])
         
